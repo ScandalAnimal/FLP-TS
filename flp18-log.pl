@@ -1,0 +1,64 @@
+/*
+ * FLP - LOG - Turingov stroj
+ * Maros Vasilisin (xvasil02)
+ * 2018
+ */
+
+ /*
+  ******************************************************************************************
+  ******************************************************************************************
+  * funkcie pre nacitanie vstupu zo suboru
+  * prevzate zo suboru input2.pl zo zadania
+  */
+
+% nacita riadok zo stdin, skonci na LF alebo EOF 
+read_line(L,C) :-
+	get_char(C),
+	(isEOFEOL(C), L = [], !;
+		read_line(LL,_),
+		[C|LL] = L).
+
+% testuje ci znak je LF alebo EOF
+isEOFEOL(C) :-
+	C == end_of_file;
+	(char_code(C,Code), Code==10).
+
+% nacita vstup
+read_lines(Ls) :-
+	read_line(L,C),
+	( C == end_of_file, Ls = [] ;
+	  read_lines(LLs), Ls = [L|LLs]
+	).
+
+% rozdeli riadok na podzoznamy
+split_line([],[[]]) :- !.
+split_line([' '|T], [[]|S1]) :- !, split_line(T,S1).
+split_line([32|T], [[]|S1]) :- !, split_line(T,S1).
+split_line([H|T], [[H|G]|S1]) :- split_line(T,[G|S1]).
+
+% vstupom je zoznam riadkov
+split_lines([],[]).
+split_lines([L|Ls],[H|T]) :- split_lines(Ls,T), split_line(L,H).
+
+ /*
+  * koniec sekcie prevzatych funkcii
+  ******************************************************************************************
+  ******************************************************************************************
+  */
+
+% odstrani posledny riadok zo vstupu, tym padom ziska len pravidla
+get_rules(LL, Rules) :-
+    append(Rules, [_], LL).
+
+
+
+
+start :-
+	prompt(_, ''),
+	read_lines(LL),
+	split_lines(LL,S),
+	get_rules(LL, Rules),
+	last(LL, Input_Tape),
+
+	write(S),
+	halt.
