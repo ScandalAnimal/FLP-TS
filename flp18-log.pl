@@ -52,7 +52,7 @@ get_rules(LL, Formatted_Rules) :-
     format_rules(Rules, Formatted_Rules).
 
 
-% funkcia zmaze medzery z pravidiel a vlozi
+% funkcia zmaze medzery z pravidiel
 format_rules([],[]).
 format_rules([L|Ls], Rules) :-
    	nth0(0, L, Old_State),
@@ -63,6 +63,16 @@ format_rules([L|Ls], Rules) :-
     format_rules(Ls, Next_Rules),
     Rules = [Rule|Next_Rules].
 
+write_tape_state([]) :- write('\n').
+write_tape_state([L|Ls]) :- 
+	write(L),
+	write_tape_state(Ls).
+
+write_tape_states([]) :- write('\n').
+write_tape_states([L|Ls]) :- 
+	write_tape_state(L),
+	write_tape_states(Ls).	
+
 start :-
 	prompt(_, ''),
 	read_lines(LL),
@@ -70,6 +80,10 @@ start :-
 	get_rules(LL, Rules),
 	last(LL, Input_Tape),
 
+	write_tape_state(Tape),
+    run(Tape, Rules, Tape_States),
+    write_tape_states(Tape_States),
+
 	%% write(S),
-	write(Rules),
+	%% write(Rules),
 	halt.
