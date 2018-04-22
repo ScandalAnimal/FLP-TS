@@ -47,11 +47,21 @@ split_lines([L|Ls],[H|T]) :- split_lines(Ls,T), split_line(L,H).
   */
 
 % odstrani posledny riadok zo vstupu, tym padom ziska len pravidla
-get_rules(LL, Rules) :-
-    append(Rules, [_], LL).
+get_rules(LL, Formatted_Rules) :-
+    append(Rules, [_], LL),
+    format_rules(Rules, Formatted_Rules).
 
 
-
+% funkcia zmaze medzery z pravidiel a vlozi
+format_rules([],[]).
+format_rules([L|Ls], Rules) :-
+   	nth0(0, L, Old_State),
+   	nth0(2, L, Tape_Symbol),
+   	nth0(4, L, New_State),
+   	nth0(6, L, Next),
+  	Rule = [Old_State, Tape_Symbol, New_State, Next],
+    format_rules(Ls, Next_Rules),
+    Rules = [Rule|Next_Rules].
 
 start :-
 	prompt(_, ''),
@@ -60,5 +70,6 @@ start :-
 	get_rules(LL, Rules),
 	last(LL, Input_Tape),
 
-	write(S),
+	%% write(S),
+	write(Rules),
 	halt.
