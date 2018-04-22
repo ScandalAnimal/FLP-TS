@@ -63,15 +63,59 @@ format_rules([L|Ls], Rules) :-
     format_rules(Ls, Next_Rules),
     Rules = [Rule|Next_Rules].
 
+% funkcia vypis stav na paske
 write_tape_state([]) :- write('\n').
 write_tape_state([L|Ls]) :- 
 	write(L),
 	write_tape_state(Ls).
 
+% funkcia vypise pole stavov na paske
 write_tape_states([]) :- write('\n').
 write_tape_states([L|Ls]) :- 
 	write_tape_state(L),
 	write_tape_states(Ls).	
+
+% funkcia vrati prvy symbol zo zoznamu, ak je zoznam prazdny, vrati medzeru
+get_tape_symbol([], ' ').
+get_tape_symbol([L|_], L).
+
+% funkcia zisti z aktualnej pasky stav a symbol pod hlavou 
+get_config([L|Ls], Config_State, Config_Symbol) :-
+	(char_type(L, upper),
+	get_tape_symbol(Ls, Config_Symbol),
+	Config_State = L);
+	get_config(Ls, Config_State, Config_Symbol).
+
+% ziska vsetky pravidla pre danu konfiguraciu pasky
+get_rules(_, _, [], Suitable_Rules) :- Suitable_Rules = [].	
+get_rules(Config_State, Config_Symbol, [L|Ls], Suitable_Rules) :-
+	
+	[Old_State, Tape_Symbol, _, _] = L,
+	(
+		(
+			Config_State == Old_State,
+			Config_Symbol == Tape_Symbol,
+			get_rules(Config_State, Config_Symbol, Ls, New_Suitable_Rules),
+			Suitable_Rules = [L|New_Suitable_Rules]
+		);
+		(
+			get_rules(Config_State, Config_Symbol, Ls, New_Suitable_Rules),
+			Suitable_Rules = New_Suitable_Rules
+		)
+	)
+.
+
+% simulacia behu turingovho stroja
+run(Tape, Rules, Tape_States) :-
+	get_config(Tape, Config_State, Config_Symbol),
+	(
+		Config_State == 'F', true;
+		get_rules(Config_State, Config_Symbol, Rules, Suitable_Rules)
+	),
+	%% write(Config_State),
+	write(Suitable_Rules)
+	%% write(Config_Symbol)
+.
 
 start :-
 	prompt(_, ''),
@@ -79,11 +123,11 @@ start :-
 	split_lines(LL,S),
 	get_rules(LL, Rules),
 	last(LL, Input_Tape),
-
+	append(['S'], Input_Tape, Tape),
 	write_tape_state(Tape),
     run(Tape, Rules, Tape_States),
-    write_tape_states(Tape_States),
+    %% write_tape_states(Tape_States),
 
-	%% write(S),
+	%% write(Input_Tape),
 	%% write(Rules),
 	halt.
