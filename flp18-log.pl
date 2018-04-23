@@ -111,10 +111,7 @@ shift_left_with_check([L|Ls], Rule, New_Tape) :-
 	[Old_State, _, _, _] = Rule,
 	(
 		L == Old_State,
-		New_Tape = [L|Ls],
-		false
-		;
-		shift_left([L|Ls], Rule, New_Tape)
+	;
 	)
 .	
 
@@ -157,25 +154,33 @@ try_rules([], _, _, _, _) :- false.
 try_rules([L|Ls], Tape, Rules, Tape_States) :-
 	
 	[_, _, _, Next] = L,
-	%% New_Tape = Tape,
 	(
 		Next == 'L',
 		shift_left_with_check(Tape, L, New_Tape)
 		;
 		Next == 'R',
-		write(['R'])
 		%% shift_right(Tape, L, New_Tape)
 		;
-		write_symbol(Tape, L, New_Tape),
-		format('I AM OUT ~n'),
-		write(New_Tape),
-		halt
+		write_symbol(Tape, L, New_Tape)
 	),
 	(
-		Tape == New_Tape, false;
-		New_Tape_States = [Tape_States|New_Tape],
-		write(New_Tape_States),
-		halt
+		format('~w comparing with ~w ~n', [Tape, New_Tape]),
+		Tape == New_Tape, 
+		(
+			try_rules(Ls, Tape, Rules, Tape_States)
+		)
+		;
+		(
+			New_Tape_States = [Tape_States|New_Tape],
+			run(New_Tape, Rules, New_Tape_States),
+			(
+				Tape_States = New_Tape_States,
+				true
+			)
+			;
+			try_rules(Ls, Tape, Rules, Tape_States)
+		)
+			
 		%% (
 			%% run(New_Tape, Rules, New_Tape_States),
 			%% (
@@ -195,7 +200,7 @@ run(Tape, Rules, Tape_States) :-
 		Config_State == 'F', true;
 		(
 			get_rules(Config_State, Config_Symbol, Rules, Suitable_Rules),
-			write(Suitable_Rules),
+			write(Suitable_Rules), nl,
 			try_rules(Suitable_Rules, Tape, Rules, Tape_States)
 		)
 	),
@@ -212,6 +217,7 @@ start :-
 	last(LL, Input_Tape),
 	append(['S'], Input_Tape, Tape),
 	write_tape_state(Tape),
+	Tape_States = [Tape],
     run(Tape, Rules, Tape_States),
     %% write_tape_states(Tape_States),
 
