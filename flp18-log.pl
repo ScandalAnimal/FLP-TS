@@ -134,23 +134,30 @@ shift_left([L|Ls], Rule, New_Tape) :-
 .
 
 % zapis noveho stavu a symbolu na pasku
+write_symbol([_], Rule, New_Tape) :- 
+	[_, _, New_State, Next] = Rule,
+	append([New_State],[Next],New_Tape)
+.
 write_symbol([L|Ls], Rule, New_Tape) :-	
 	[Old_State, _, New_State, Next] = Rule,
-	L == Old_State,
 	(
+		L == Old_State,
 		[_|Rest] = Ls,
 		append([New_State],[Next], Added_Symbol),
 		append(Added_Symbol, Rest, New_Tape)
-	)
 	;
-	write_symbol(Ls, Rule, New_Tape_From_Rest),
-	New_Tape = [L|New_Tape_From_Rest]
+		L \= Old_State,
+		write_symbol(Ls, Rule, New_Tape_From_Rest),
+		New_Tape = [L|New_Tape_From_Rest]
+	)
 .
+
 
 try_rules([], _, _, _, _) :- false.
 try_rules([L|Ls], Tape, Rules, Tape_States) :-
 	
 	[_, _, _, Next] = L,
+	%% New_Tape = Tape,
 	(
 		Next == 'L',
 		shift_left_with_check(Tape, L, New_Tape)
@@ -160,20 +167,24 @@ try_rules([L|Ls], Tape, Rules, Tape_States) :-
 		%% shift_right(Tape, L, New_Tape)
 		;
 		write_symbol(Tape, L, New_Tape),
-		write(New_Tape)
+		format('I AM OUT ~n'),
+		write(New_Tape),
+		halt
 	),
 	(
 		Tape == New_Tape, false;
 		New_Tape_States = [Tape_States|New_Tape],
-		(
-			run(New_Tape, Rules, New_Tape_States),
-			(
-				Tape_States = New_Tape_States,
-				true
-			)
-			;
-			try_rules(Ls, Tape, Rules, Tape_States)
-		)
+		write(New_Tape_States),
+		halt
+		%% (
+			%% run(New_Tape, Rules, New_Tape_States),
+			%% (
+				%% Tape_States = New_Tape_States,
+				%% true
+			%% )
+			%% ;
+			%% try_rules(Ls, Tape, Rules, Tape_States)
+		%% )
 	)
 .
 
