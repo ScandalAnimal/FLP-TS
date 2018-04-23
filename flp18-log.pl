@@ -105,15 +105,91 @@ get_rules(Config_State, Config_Symbol, [L|Ls], Suitable_Rules) :-
 	)
 .
 
+% posun dolava, kontrola na pretecenie
+shift_left_with_check([L|Ls], Rule, New_Tape) :-	
+	
+	[Old_State, _, _, _] = Rule,
+	(
+		L == Old_State,
+		New_Tape = [L|Ls],
+		false
+		;
+		shift_left([L|Ls], Rule, New_Tape)
+	)
+.	
+
+% posun dolava, samotny posun
+shift_left([L|Ls], Rule, New_Tape) :-	
+	[Second|Rest] = Ls,
+	[Old_State, _, New_State, _] = Rule,
+	(
+		Second == Old_State,
+		(
+			append([New_State],[L], Shifted_Left),
+			append(Shifted_Left, Rest, New_Tape)
+		)
+		;
+		shift_left(Ls, Rule, New_Tape)
+	)
+.
+
+% zapis noveho stavu a symbolu na pasku
+write_symbol([L|Ls], Rule, New_Tape) :-	
+	[Old_State, _, New_State, Next] = Rule,
+	L == Old_State,
+	(
+		[_|Rest] = Ls,
+		append([New_State],[Next], Added_Symbol),
+		append(Added_Symbol, Rest, New_Tape)
+	)
+	;
+	write_symbol(Ls, Rule, New_Tape_From_Rest),
+	New_Tape = [L|New_Tape_From_Rest]
+.
+
+try_rules([], _, _, _, _) :- false.
+try_rules([L|Ls], Tape, Rules, Tape_States) :-
+	
+	[_, _, _, Next] = L,
+	(
+		Next == 'L',
+		shift_left_with_check(Tape, L, New_Tape)
+		;
+		Next == 'R',
+		write(['R'])
+		%% shift_right(Tape, L, New_Tape)
+		;
+		write_symbol(Tape, L, New_Tape),
+		write(New_Tape)
+	),
+	(
+		Tape == New_Tape, false;
+		New_Tape_States = [Tape_States|New_Tape],
+		(
+			run(New_Tape, Rules, New_Tape_States),
+			(
+				Tape_States = New_Tape_States,
+				true
+			)
+			;
+			try_rules(Ls, Tape, Rules, Tape_States)
+		)
+	)
+.
+
 % simulacia behu turingovho stroja
 run(Tape, Rules, Tape_States) :-
 	get_config(Tape, Config_State, Config_Symbol),
 	(
 		Config_State == 'F', true;
-		get_rules(Config_State, Config_Symbol, Rules, Suitable_Rules)
+		(
+			get_rules(Config_State, Config_Symbol, Rules, Suitable_Rules),
+			write(Suitable_Rules),
+			try_rules(Suitable_Rules, Tape, Rules, Tape_States)
+		)
 	),
 	%% write(Config_State),
-	write(Suitable_Rules)
+	write(Tape_States)
 	%% write(Config_Symbol)
 .
 
