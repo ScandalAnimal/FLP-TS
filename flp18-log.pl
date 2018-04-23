@@ -192,9 +192,9 @@ write_symbol([L|Ls], Rule, New_Tape) :-
 	)
 .
 
-
+% skusa vsetky mozne pravidla pre danu konfiguraciu, ak jedno z pravidiel vedie na abnormalne zastavenie, vyskusa v poradi dalsie pravidlo
 try_rules([], _, _, _, _) :- false.
-try_rules(L, Tape, Rules, Tape_States) :-
+try_rules([L|Ls], Tape, Rules, Tape_States) :-
 	
 	[_, _, _, Next] = L,
 	(
@@ -207,57 +207,37 @@ try_rules(L, Tape, Rules, Tape_States) :-
 		write_symbol(Tape, L, New_Tape)
 	),
 	(
-		%% format('~w comparing with ~w ~n', [Tape, New_Tape]),
-		%% Tape == New_Tape, 
-		%% (
-			%% try_rules(Ls, Tape, Rules, Tape_States)
-		%% )
-		%% ;
-		%% (
-			%% New_Tape_States = [Tape_States|New_Tape],
-			run(New_Tape, Rules, New_Tape_States),
-			%% append(New_Tape, New_Tape_States, X),
-			Tape_States = [New_Tape|New_Tape_States]
-			%% write_tape_states(X),
-			%% format('New Tape States ~w ~n', [New_Tape_States])
-			%% run(New_Tape, Rules, New_Tape_States),
-			%% (
-				%% Tape_States = New_Tape_States
-				%% true
-			%% )
-			%% ;
-			%% try_rules(Ls, Tape, Rules, Tape_States)
-		%% )
-			
+		Tape == New_Tape, 
+		(
+			try_rules(Ls, Tape, Rules, Tape_States)
+		)
+		;
+		run(New_Tape, Rules, New_Tape_States),
+		Tape_States = [New_Tape|New_Tape_States]
 	)
 .
 
 % simulacia behu turingovho stroja
 run(Tape, Rules, Tape_States) :-
 	get_config(Tape, Config_State, Config_Symbol),
-	format('config state: ~w, config symbol: ~w, tape: ~w ~n',[Config_State, Config_Symbol, Tape]),
+	%% format('config state: ~w, config symbol: ~w, tape: ~w ~n',[Config_State, Config_Symbol, Tape]),
 	(
 		Config_State == 'F', true;
 		(
 			get_rules(Config_State, Config_Symbol, Rules, Suitable_Rules),
 			(
 				Suitable_Rules \= [],
-				[First|_] = Suitable_Rules,
-				%% format('rules are ~w ~n',[Suitable_Rules]),
-				try_rules(First, Tape, Rules, Tape_States)
+				try_rules(Suitable_Rules, Tape, Rules, Tape_States)
 			)
 
 		)
 	)
-	%% write(Config_State),
-	%% write(Tape_States)
-	%% write(Config_Symbol)
 .
 
 start :-
 	prompt(_, ''),
 	read_lines(LL),
-	split_lines(LL,S),
+	%% split_lines(LL,S),
 	get_rules(LL, Rules),
 	last(LL, Input_Tape),
 	append(['S'], Input_Tape, Tape),
