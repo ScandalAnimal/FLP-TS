@@ -109,10 +109,8 @@ get_rules(Config_State, Config_Symbol, [L|Ls], Suitable_Rules) :-
 shift_left_with_check([L|Ls], Rule, New_Tape) :-	
 	
 	[Old_State, _, _, _] = Rule,
-	(
-		L == Old_State,
-	;
-	)
+	L == Old_State, false;
+	shift_left([L|Ls], Rule, New_Tape)
 .	
 
 % posun dolava, samotny posun
@@ -126,9 +124,54 @@ shift_left([L|Ls], Rule, New_Tape) :-
 			append(Shifted_Left, Rest, New_Tape)
 		)
 		;
-		shift_left(Ls, Rule, New_Tape)
+		shift_left(Ls, Rule, New_Tape_Shifted),
+		New_Tape = [L|New_Tape_Shifted]
 	)
 .
+
+% posun doprava
+shift_right([L|Ls], Rule, New_Tape) :-	
+	[Second|Rest] = Ls,
+	[Old_State, _, New_State, _] = Rule,
+	(
+		L == Old_State,
+		(
+			Rest == [],
+			(
+				append([New_State],[' '], Added_Blank),
+				append([Second], Added_Blank, New_Tape)
+			)
+			;
+			append([Second],[New_State],Shifted_Right),
+			append(Shifted_Right, Rest, New_Tape)
+		)
+		;
+		shift_right(Ls, Rule, New_Tape_Shifted),
+		New_Tape = [L|New_Tape_Shifted]
+	)
+.
+
+% funkce posune pasku doprava
+shiftRight([Item|Tape], State, NextState, NewTape) :-
+     Item == State,
+          (
+               [NextInList|MoreTape] = Tape,
+                    (
+                         % jsme na konci pasky, pridame blank
+                         MoreTape == [],
+                         (
+                              append([NextState], [' '], NewTmp),
+                              append([NextInList], NewTmp, NewTape)
+                         )
+                         ;
+                         append([NextInList], [NextState], NewTmp),
+                         append(NewTmp, MoreTape, NewTape)
+                    )
+          )
+          ;
+          shiftRight(Tape, State, NextState, NewTmp2),
+          NewTape = [Item|NewTmp2]
+.	
 
 % zapis noveho stavu a symbolu na pasku
 write_symbol([_], Rule, New_Tape) :- 
@@ -151,7 +194,7 @@ write_symbol([L|Ls], Rule, New_Tape) :-
 
 
 try_rules([], _, _, _, _) :- false.
-try_rules([L|Ls], Tape, Rules, Tape_States) :-
+try_rules(L, Tape, Rules, Tape_States) :-
 	
 	[_, _, _, Next] = L,
 	(
@@ -159,53 +202,55 @@ try_rules([L|Ls], Tape, Rules, Tape_States) :-
 		shift_left_with_check(Tape, L, New_Tape)
 		;
 		Next == 'R',
-		%% shift_right(Tape, L, New_Tape)
+		shift_right(Tape, L, New_Tape)
 		;
 		write_symbol(Tape, L, New_Tape)
 	),
 	(
-		format('~w comparing with ~w ~n', [Tape, New_Tape]),
-		Tape == New_Tape, 
-		(
-			try_rules(Ls, Tape, Rules, Tape_States)
-		)
-		;
-		(
-			New_Tape_States = [Tape_States|New_Tape],
-			run(New_Tape, Rules, New_Tape_States),
-			(
-				Tape_States = New_Tape_States,
-				true
-			)
-			;
-			try_rules(Ls, Tape, Rules, Tape_States)
-		)
-			
+		%% format('~w comparing with ~w ~n', [Tape, New_Tape]),
+		%% Tape == New_Tape, 
 		%% (
+			%% try_rules(Ls, Tape, Rules, Tape_States)
+		%% )
+		%% ;
+		%% (
+			%% New_Tape_States = [Tape_States|New_Tape],
+			run(New_Tape, Rules, New_Tape_States),
+			%% append(New_Tape, New_Tape_States, X),
+			Tape_States = [New_Tape|New_Tape_States]
+			%% write_tape_states(X),
+			%% format('New Tape States ~w ~n', [New_Tape_States])
 			%% run(New_Tape, Rules, New_Tape_States),
 			%% (
-				%% Tape_States = New_Tape_States,
+				%% Tape_States = New_Tape_States
 				%% true
 			%% )
 			%% ;
 			%% try_rules(Ls, Tape, Rules, Tape_States)
 		%% )
+			
 	)
 .
 
 % simulacia behu turingovho stroja
 run(Tape, Rules, Tape_States) :-
 	get_config(Tape, Config_State, Config_Symbol),
+	format('config state: ~w, config symbol: ~w, tape: ~w ~n',[Config_State, Config_Symbol, Tape]),
 	(
 		Config_State == 'F', true;
 		(
 			get_rules(Config_State, Config_Symbol, Rules, Suitable_Rules),
-			write(Suitable_Rules), nl,
-			try_rules(Suitable_Rules, Tape, Rules, Tape_States)
+			(
+				Suitable_Rules \= [],
+				[First|_] = Suitable_Rules,
+				%% format('rules are ~w ~n',[Suitable_Rules]),
+				try_rules(First, Tape, Rules, Tape_States)
+			)
+
 		)
-	),
+	)
 	%% write(Config_State),
-	write(Tape_States)
+	%% write(Tape_States)
 	%% write(Config_Symbol)
 .
 
@@ -217,9 +262,9 @@ start :-
 	last(LL, Input_Tape),
 	append(['S'], Input_Tape, Tape),
 	write_tape_state(Tape),
-	Tape_States = [Tape],
+	%% Tape_States = [Tape],
     run(Tape, Rules, Tape_States),
-    %% write_tape_states(Tape_States),
+    write_tape_states(Tape_States),
 
 	%% write(Input_Tape),
 	%% write(Rules),
