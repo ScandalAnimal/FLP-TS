@@ -70,7 +70,7 @@ write_tape_state([L|Ls]) :-
 	write_tape_state(Ls).
 
 % funkcia vypise pole stavov na paske
-write_tape_states([]) :- write('\n').
+write_tape_states([]) :- write('').
 write_tape_states([L|Ls]) :- 
 	write_tape_state(L),
 	write_tape_states(Ls).	
@@ -109,7 +109,7 @@ get_rules(Config_State, Config_Symbol, [L|Ls], Suitable_Rules) :-
 shift_left_with_check([L|Ls], Rule, New_Tape) :-	
 	
 	[Old_State, _, _, _] = Rule,
-	L == Old_State, false;
+	L == Old_State, halt;
 	shift_left([L|Ls], Rule, New_Tape)
 .	
 
@@ -241,9 +241,9 @@ start :-
 	get_rules(LL, Rules),
 	last(LL, Input_Tape),
 	append(['S'], Input_Tape, Tape),
-	write_tape_state(Tape),
 	%% Tape_States = [Tape],
     run(Tape, Rules, Tape_States),
+    write_tape_state(Tape),
     write_tape_states(Tape_States),
 
 	%% write(Input_Tape),
