@@ -151,28 +151,6 @@ shift_right([L|Ls], Rule, New_Tape) :-
 	)
 .
 
-% funkce posune pasku doprava
-shiftRight([Item|Tape], State, NextState, NewTape) :-
-     Item == State,
-          (
-               [NextInList|MoreTape] = Tape,
-                    (
-                         % jsme na konci pasky, pridame blank
-                         MoreTape == [],
-                         (
-                              append([NextState], [' '], NewTmp),
-                              append([NextInList], NewTmp, NewTape)
-                         )
-                         ;
-                         append([NextInList], [NextState], NewTmp),
-                         append(NewTmp, MoreTape, NewTape)
-                    )
-          )
-          ;
-          shiftRight(Tape, State, NextState, NewTmp2),
-          NewTape = [Item|NewTmp2]
-.	
-
 % zapis noveho stavu a symbolu na pasku
 write_symbol([_], Rule, New_Tape) :- 
 	[_, _, New_State, Next] = Rule,
@@ -220,7 +198,6 @@ try_rules([L|Ls], Tape, Rules, Tape_States) :-
 % simulacia behu turingovho stroja
 run(Tape, Rules, Tape_States) :-
 	get_config(Tape, Config_State, Config_Symbol),
-	%% format('config state: ~w, config symbol: ~w, tape: ~w ~n',[Config_State, Config_Symbol, Tape]),
 	(
 		Config_State == 'F', true;
 		(
@@ -237,15 +214,10 @@ run(Tape, Rules, Tape_States) :-
 start :-
 	prompt(_, ''),
 	read_lines(LL),
-	%% split_lines(LL,S),
 	get_rules(LL, Rules),
 	last(LL, Input_Tape),
 	append(['S'], Input_Tape, Tape),
-	%% Tape_States = [Tape],
     run(Tape, Rules, Tape_States),
     write_tape_state(Tape),
     write_tape_states(Tape_States),
-
-	%% write(Input_Tape),
-	%% write(Rules),
 	halt.
