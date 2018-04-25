@@ -1,4 +1,4 @@
 S a B a
 B a B L
-B x F c
+B a F c
 aaacaa

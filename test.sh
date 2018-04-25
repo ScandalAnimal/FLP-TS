@@ -23,32 +23,10 @@ function compare
 
 }
 
-function compareWrong
-{
-	input=$1
-	name=$(basename "$input")
-
-	./flp18-log < $input >> /dev/null 2>&1 
-  
-   	if [ $? == 0 ]
-	then
-		nd="\033[1;31m${bold}FAIL${normal}\033[0m"
-	else
-    	nd="\033[1;32m${bold}PASS${normal}\033[0m"
-	fi
-
-	echo -e "Processed $name: $nd"
-}
-
 rm -R -f ./outputs
 mkdir outputs
 
 echo -e "\033[0;35m${bold}Starting deterministic tests...${normal}\033[0m"
 for input in $(ls ./tests/*) ; do
 		compare $input
-done
-
-echo -e "\033[0;35m${bold}Starting wrong inputs tests...${normal}\033[0m"
-for input in $(ls ./wrongInputs/*) ; do
-		compareWrong $input
 done
