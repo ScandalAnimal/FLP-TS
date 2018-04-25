@@ -8,4 +8,4 @@ all:
 	$(CC) $(FLAGS) -g start -o $(BIN) -c $(SRC)
 
 clean:
-rm $(BIN)
+	rm $(BIN)

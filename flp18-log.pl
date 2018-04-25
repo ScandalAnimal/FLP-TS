@@ -30,16 +30,6 @@ read_lines(Ls) :-
 	  read_lines(LLs), Ls = [L|LLs]
 	).
 
-% rozdeli riadok na podzoznamy
-split_line([],[[]]) :- !.
-split_line([' '|T], [[]|S1]) :- !, split_line(T,S1).
-split_line([32|T], [[]|S1]) :- !, split_line(T,S1).
-split_line([H|T], [[H|G]|S1]) :- split_line(T,[G|S1]).
-
-% vstupom je zoznam riadkov
-split_lines([],[]).
-split_lines([L|Ls],[H|T]) :- split_lines(Ls,T), split_line(L,H).
-
  /*
   * koniec sekcie prevzatych funkcii
   ******************************************************************************************
@@ -109,7 +99,7 @@ get_rules(Config_State, Config_Symbol, [L|Ls], Suitable_Rules) :-
 shift_left_with_check([L|Ls], Rule, New_Tape) :-	
 	
 	[Old_State, _, _, _] = Rule,
-	L == Old_State, halt;
+	L == Old_State, New_Tape = [L|Ls];
 	shift_left([L|Ls], Rule, New_Tape)
 .	
 
@@ -136,7 +126,7 @@ shift_right([L|Ls], Rule, New_Tape) :-
 	(
 		L == Old_State,
 		(
-			Rest == [],
+			Ls == [],
 			(
 				append([New_State],[' '], Added_Blank),
 				append([Second], Added_Blank, New_Tape)
@@ -171,9 +161,9 @@ write_symbol([L|Ls], Rule, New_Tape) :-
 .
 
 % skusa vsetky mozne pravidla pre danu konfiguraciu, ak jedno z pravidiel vedie na abnormalne zastavenie, vyskusa v poradi dalsie pravidlo
-try_rules([], _, _, _, _) :- false.
+try_rules([], _, _, _) :- false.
 try_rules([L|Ls], Tape, Rules, Tape_States) :-
-	
+
 	[_, _, _, Next] = L,
 	(
 		Next == 'L',
@@ -187,6 +177,7 @@ try_rules([L|Ls], Tape, Rules, Tape_States) :-
 	(
 		Tape == New_Tape, 
 		(
+			Ls == [], halt;
 			try_rules(Ls, Tape, Rules, Tape_States)
 		)
 		;
@@ -199,7 +190,7 @@ try_rules([L|Ls], Tape, Rules, Tape_States) :-
 run(Tape, Rules, Tape_States) :-
 	get_config(Tape, Config_State, Config_Symbol),
 	(
-		Config_State == 'F', true;
+		Config_State == 'F', !;
 		(
 			get_rules(Config_State, Config_Symbol, Rules, Suitable_Rules),
 			(
