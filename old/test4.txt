@@ -1,0 +1,6 @@
+S a B R
+B a B R
+B c A R
+A a A L
+A c F c
+aaaaaca

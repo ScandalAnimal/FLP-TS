@@ -1,0 +1,36 @@
+FLP - 2. projekt
+Zadanie: Turingov stroj
+Autor: Maroš Vasilišin (xvasil02)
+Dátum: 25.04.2018
+
+Aplikácia vykonáva simuláciu behu nedeterministického Turingovho stroja. Na vstupe obdrží pravidlá pre TS a obsah vstupnej pásky v presne vymedzenom formáte. Aplikácia podporuje len správne zadaný vstupný súbor. Výstupom je postupnosť konfigurácií TS.
+Vnútorné stavy sú označené veľkými písmenami, pásková abeceda malými písmenami. Znak "blank" je označený medzerou. Počiatočný stav je S, koncový stav je F.
+Výpočet končí prechodom do koncového stavu, prípadne abnormálne.
+
+Formát pravidiel:
+<stav> <symbol na páske> <nový stav> <nový symbol na páske, prípadne L/R>
+
+Jednotlivé časti pravidiel sú oddelené medzerou, každé pravidlo je na vlastnom riadku. Symboly L/R značia presun hlavy. Na poslednom riadku vstupu je obsah vstupnej pásky.
+
+Popis implementácie:
+
+Program začína funkciou start, ktorá načíta vstup, pravidlá a obsah pásky si uloží.
+Pre aktuálny stav sa vyberie množina pravidiel, ktoré sa môže vykonať. Vyberie sa vždy prvé pravidlo v poradí, vykoná sa a proces sa opakuje. Ak je na výber viacero pravidiel pre daný stav, a prvé pravidlo vedie k abnormálnemu zastaveniu, rekurzívne sa vyberá ďalšie pravidlo v poradí.
+Proces končí ak sa dosiahne koncového stavu F, alebo ak nie je možné vykonať žiadnu kombináciu pravidiel. V prípade, že dôjde k abnormálnemu ukončeniu, výstup je prázdny, ak dôjde ku korektnému ukončeniu, na výstupe je postupnosť konfigurácii.
+
+Preklad a spustenie:
+	make
+	./flp18-log < /cesta_k_testom/vstup.txt > /cesta_k_vysledkom/vystup.txt
+
+
+Súčasťou odovzdaného archívu je niekoľko testov, ktoré demonštrujú prácu s programom. Program funguje pre vstupné súbory s UNIX koncami riadkov.
+
+Testy:
+	00-zadanie.txt 					- referenčný test zo zadania
+	01-posun-vpravo.txt				- test operácie R
+	02-posun-vlavo.txt				- test operácie L
+	03-zapis.txt					- test zápisu na pásku
+	04-vypadnutie-dolava.txt		- test ktorý sa pokúsi o posun doľava na prvom znaku pásky
+	05-vypadnutie-s-inym-pravidlom	- test ktorý v pravidlách obsahuje možnosť vypadnutia z pásky, ale aj cestu, ktorá vedie ku koncovému stavu
+	06-blank.txt					- test ktorý zapíše na pásku blank
+	07-blank-prvy.txt				- test ktorý číta z pásky symbol blank

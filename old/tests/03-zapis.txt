@@ -1,0 +1,5 @@
+S a A c
+A c A R
+A a A c
+A b F x
+aaaaaab
